@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Stock Analyzer</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<nav>
+  <a class="nav-brand" href="/">◈ STOCKAI</a>
+  <div class="nav-links">
+    <a href="/compare">Compare</a>
+    <a href="/watchlist">⭐ Watchlist</a>
+  </div>
+</nav>
+<div class="page">
+  <div class="hero">
+    <span class="hero-tag">NSE · Real-time Analysis</span>
+    <h1>AI-Powered<br>Stock Analyzer</h1>
+    <p>Technical indicators, machine learning predictions, and live news — all in one place.</p>
+    <form class="search-form" action="/analyze" method="POST">
+      <input type="text" name="symbol" placeholder="Enter symbol: TCS, INFY, RELIANCE…" required autocomplete="off">
+      <button type="submit">Analyze →</button>
+    </form>
+    <div class="quick-links">
+      <span style="font-size:0.72rem; color:var(--muted); font-family:'Space Mono',monospace;">Popular:</span>
+      {% for s in ['TCS', 'INFY', 'RELIANCE', 'HDFCBANK', 'WIPRO'] %}
+      <form action="/analyze" method="POST" style="display:inline">
+        <input type="hidden" name="symbol" value="{{ s }}">
+        <button type="submit" class="chip">{{ s }}</button>
+      </form>
+      {% endfor %}
+    </div>
+    <div class="flex gap-3 mt-3">
+      <a href="/compare" class="btn btn-ghost" style="font-size:0.8rem;">⇄ Compare Stocks</a>
+      <a href="/watchlist" class="btn btn-ghost" style="font-size:0.8rem;">⭐ My Watchlist</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

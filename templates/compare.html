@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compare Stocks</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<nav>
+  <a class="nav-brand" href="/">◈ STOCKAI</a>
+  <div class="nav-links">
+    <a href="/">Analyze</a>
+    <a href="/watchlist">⭐ Watchlist</a>
+  </div>
+</nav>
+<div class="page">
+  <h1 class="page-title">Compare Stocks</h1>
+  <p class="page-subtitle">Side-by-side technical analysis of two NSE stocks</p>
+
+  <form action="/compare" method="POST">
+    <div class="compare-inputs">
+      <div class="input-group">
+        <label>Stock 1</label>
+        <input type="text" name="s1" placeholder="e.g. TCS" value="{{ s1 or '' }}" required>
+      </div>
+      <div class="vs-divider">VS</div>
+      <div class="input-group">
+        <label>Stock 2</label>
+        <input type="text" name="s2" placeholder="e.g. INFY" value="{{ s2 or '' }}" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="align-self:flex-end; padding:12px 28px;">Compare →</button>
+    </div>
+  </form>
+
+  {% if data %}
+  <div class="compare-grid">
+    {% for stock in data %}
+    <div>
+      <div class="compare-header">{{ stock.symbol }}</div>
+      <div class="metrics" style="grid-template-columns:1fr 1fr;">
+        <div class="card"><div class="card-label">Current</div><div class="card-value blue">₹{{ stock.current_price }}</div></div>
+        <div class="card">
+          <div class="card-label">2Y Change</div>
+          <div class="card-value {% if stock.price_change_percent > 0 %}up{% else %}down{% endif %}">
+            {% if stock.price_change_percent > 0 %}+{% endif %}{{ stock.price_change_percent }}%
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label">RSI</div>
+          <div class="card-value {% if stock.rsi < 30 %}up{% elif stock.rsi > 70 %}down{% else %}warn{% endif %}">{{ stock.rsi }}</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Signal</div>
+          <div class="card-value">
+            {% if 'BUY' in stock.signal %}<span class="badge buy" style="font-size:0.7rem;">BUY</span>
+            {% elif 'SELL' in stock.signal %}<span class="badge sell" style="font-size:0.7rem;">SELL</span>
+            {% else %}<span class="badge hold" style="font-size:0.7rem;">HOLD</span>{% endif %}
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label">AI Prediction</div>
+          <div class="card-value {% if stock.predicted_price > stock.current_price %}up{% else %}down{% endif %}">₹{{ stock.predicted_price }}</div>
+        </div>
+        <div class="card"><div class="card-label">Health</div><div class="card-value">{{ stock.health_score }}/100</div></div>
+      </div>
+      <div style="margin-top:0.75rem;">
+        <div class="health-bar-bg"><div class="health-bar-fill" style="width:{{ stock.health_score }}%"></div></div>
+      </div>
+      <div class="mt-2">
+        <form action="/analyze" method="POST" style="display:inline">
+          <input type="hidden" name="symbol" value="{{ stock.symbol }}">
+          <button type="submit" class="btn btn-ghost" style="font-size:0.78rem;">Full Analysis →</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="section-title">Price Comparison (% change from start)</div>
+  <div class="chart-box">
+    <div style="position:relative; height:300px;"><canvas id="compareChart"></canvas></div>
+  </div>
+
+  <script>
+    const compareData = {{ compare_chart | tojson }};
+    const colors = ['#00e5ff', '#7c3aed'];
+
+    function toPctChange(prices) {
+      const base = prices[0];
+      return prices.map(p => parseFloat(((p - base) / base * 100).toFixed(2)));
+    }
+
+    const labels = compareData[0].dates.length >= compareData[1].dates.length
+      ? compareData[0].dates : compareData[1].dates;
+
+    new Chart(document.getElementById('compareChart'), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: compareData.map((s, i) => ({
+          label: s.symbol + ' (% change)',
+          data: toPctChange(s.prices),
+          borderColor: colors[i],
+          backgroundColor: colors[i] + '18',
+          fill: true, tension: 0.3, pointRadius: 0, borderWidth: 2,
+        }))
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#5a6a80', font: { family: 'Space Mono', size: 11 } } },
+          tooltip: { mode: 'index', intersect: false, callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + ctx.raw + '%' } }
+        },
+        scales: {
+          x: { ticks: { color: '#5a6a80', font: { size: 10 }, maxTicksLimit: 8 }, grid: { color: 'rgba(255,255,255,0.04)' } },
+          y: { ticks: { color: '#5a6a80', font: { size: 10 }, callback: v => v + '%' }, grid: { color: 'rgba(255,255,255,0.04)' } }
+        }
+      }
+    });
+  </script>
+  {% endif %}
+</div>
+</body>
+</html>

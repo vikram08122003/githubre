@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ symbol }} — Analysis</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<nav>
+  <a class="nav-brand" href="/">◈ STOCKAI</a>
+  <div class="nav-links">
+    <a href="/compare">Compare</a>
+    <a href="/watchlist">⭐ Watchlist</a>
+  </div>
+</nav>
+<div class="page">
+  <div class="flex gap-3" style="align-items:baseline; flex-wrap:wrap; margin-bottom:0.4rem;">
+    <h1 class="page-title font-mono">{{ symbol }}</h1>
+    {% if 'BUY' in signal %}
+      <span class="badge buy">● BUY</span>
+    {% elif 'SELL' in signal %}
+      <span class="badge sell">● SELL</span>
+    {% else %}
+      <span class="badge hold">● HOLD</span>
+    {% endif %}
+  </div>
+  <p class="page-subtitle">Last updated: {{ current_time }} &nbsp;·&nbsp; NSE India</p>
+
+  <div class="metrics">
+    <div class="card"><div class="card-label">Start Price</div><div class="card-value">₹{{ start_price }}</div></div>
+    <div class="card"><div class="card-label">Current Price</div><div class="card-value blue">₹{{ current_price }}</div></div>
+    <div class="card">
+      <div class="card-label">AI Prediction</div>
+      <div class="card-value {% if predicted_price > current_price %}up{% else %}down{% endif %}">₹{{ predicted_price }}</div>
+    </div>
+    <div class="card">
+      <div class="card-label">RSI (14)</div>
+      <div class="card-value {% if rsi < 30 %}up{% elif rsi > 70 %}down{% else %}warn{% endif %}">{{ rsi }}</div>
+    </div>
+    <div class="card"><div class="card-label">Trend</div><div class="card-value" style="font-size:1.1rem;">{{ trend }}</div></div>
+    <div class="card">
+      <div class="card-label">2Y Change</div>
+      <div class="card-value {% if price_change_percent > 0 %}up{% else %}down{% endif %}">
+        {% if price_change_percent > 0 %}+{% endif %}{{ price_change_percent }}%
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-2" style="max-width:400px;">
+    <div class="card-label">Stock Health Score</div>
+    <div class="health-score-num">{{ health_score }}<span style="font-size:1rem; color:var(--muted)">/100</span></div>
+    <div class="health-wrap">
+      <div class="health-label"><span>Poor</span><span>Neutral</span><span>Strong</span></div>
+      <div class="health-bar-bg"><div class="health-bar-fill" id="hbar" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div class="chart-box">
+    <div class="chart-title">Price History (2 Years)</div>
+    <div style="position:relative; height:280px;"><canvas id="priceChart"></canvas></div>
+  </div>
+
+  <div class="chart-box">
+    <div class="chart-title">RSI Indicator (14-period)</div>
+    <div style="position:relative; height:180px;"><canvas id="rsiChart"></canvas></div>
+  </div>
+
+  <div class="flex gap-2 mt-2 mb-2">
+    <a href="/add/{{ symbol }}" class="btn btn-primary">⭐ Add to Watchlist</a>
+    <a href="/" class="btn btn-ghost">← Back</a>
+    <a href="/compare?s1={{ symbol }}" class="btn btn-ghost">⇄ Compare</a>
+  </div>
+
+  <div class="section-title mt-3">Latest News</div>
+  <div class="news-grid" id="newsGrid">
+    <div class="loading"><div class="spinner"></div> Fetching news…</div>
+  </div>
+</div>
+
+<script>
+const dates  = {{ dates | tojson }};
+const prices = {{ prices | tojson }};
+const rsi    = {{ rsi_values | tojson }};
+const symbol = "{{ symbol }}";
+const health = {{ health_score }};
+</script>
+<script src="{{ url_for('static', filename='chart.js') }}"></script>
+<script src="{{ url_for('static', filename='news.js') }}"></script>
+<script>
+  setTimeout(() => { document.getElementById('hbar').style.width = health + '%'; }, 300);
+</script>
+</body>
+</html>

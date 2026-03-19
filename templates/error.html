@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Error</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<nav>
+  <a class="nav-brand" href="/">◈ STOCKAI</a>
+</nav>
+<div class="page" style="text-align:center; padding-top:6rem;">
+  <div style="font-size:3rem; margin-bottom:1rem;">⚠️</div>
+  <h1 class="page-title">Symbol Not Found</h1>
+  <p class="page-subtitle">Could not fetch data for <strong class="font-mono text-accent">{{ symbol }}</strong>.<br>
+  Make sure it is a valid NSE ticker (e.g. TCS, INFY, RELIANCE).</p>
+  <div class="flex gap-2 mt-3" style="justify-content:center;">
+    <a href="/" class="btn btn-primary">← Try Again</a>
+    <a href="/watchlist" class="btn btn-ghost">Watchlist</a>
+  </div>
+</div>
+</body>
+</html>
+```
+
+---
+
+**Folder structure — make sure it looks exactly like this:**
+```
+your_project/
+├── app.py
+├── analysis.py
+├── static/
+│   ├── style.css
+│   ├── chart.js
+│   └── news.js
+└── templates/
+    ├── index.html
+    ├── result.html
+    ├── compare.html
+    ├── watchlist.html
+    └── error.html
